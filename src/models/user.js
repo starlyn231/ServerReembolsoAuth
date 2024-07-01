@@ -7,10 +7,11 @@ const User = sequelize.define('User', {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
-    },
-    UserName: {
-      type: DataTypes.STRING,
       allowNull: false,
+    },
+    Username: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
     Email: {
       type: DataTypes.STRING,
@@ -21,9 +22,21 @@ const User = sequelize.define('User', {
       type: DataTypes.STRING,
       allowNull: false,
     },
+    Rol: {
+      type: DataTypes.INTEGER,
+      allowNull: true, 
+    },
+    NotificationsWithEmail: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true, 
+    },
+    // DateField: {
+    //   type: DataTypes.DATE,
+    //   allowNull: true,
+    //   defaultValue: Sequelize.NOW, // Default value is the current date
+    // }
   }, {
-    tableName: 'Users', // Asegúrate de que el nombre de la tabla es correcto
-    schema: 'dbo', 
+    tableName: 'UsersReembolso', 
     timestamps: false,
   });
   

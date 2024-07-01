@@ -4,85 +4,103 @@ const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
+const authenticateToken = require("../middlewares/validate-token");
 const router = express.Router();
 
 // Register user
 router.post("/register", async (req, res) => {
   try {
-    const { username, email, password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = await User.create({
-      username,
-      email,
-      password: hashedPassword,
+    const { email, Password, notificationsWithEmail, rol } = req.body;
+    //let userName = email;
+    console.log(email, Password, notificationsWithEmail, rol);
+    if (!email || !Password) {
+      return res.status(400).json({
+        msg: "Por favor, rellena los campos requeridos",
+        success: false,
+      });
+    }
+
+    let user = await User.findOne({
+      where: {
+        /* In the provided code snippet, the variable `email` is
+    being used incorrectly. */
+        email,
+      },
     });
-    res.status(201).json(newUser);
+    if (user) {
+      return res.status(400).json({
+        msg: "El usuario ya existe",
+        success: false,
+      });
+    }
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(Password, salt);
+    const newUser = await User.create({
+      Username: email,
+      Email: email,
+      PasswordHash: hashedPassword,
+      NotificationsWithEmail: notificationsWithEmail,
+      Rol: rol,
+    });
+    res.status(200).json({ newUser, success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-const verifyPassword = (password, storedHash) => {
-  const parts = storedHash.split("$");
-  if (parts.length !== 3) {
-    throw new Error("Formato de hash no soportado");
-  }
-
-  const version = parts[0];
-  const salt = parts[1];
-  const hash = parts[2];
-
-  if (version !== "v=1") {
-    throw new Error("Versión de hash no soportada");
-  }
-
-  return new Promise((resolve, reject) => {
-    crypto.pbkdf2(
-      password,
-      Buffer.from(salt, "base64"),
-      10000,
-      32,
-      "sha256",
-      (err, derivedKey) => {
-        if (err) {
-          return reject(err);
-        }
-        resolve(hash === derivedKey.toString("base64"));
-      }
-    );
-  });
-};
 // POST api/v1/login | public | login exixting user
 router.post("/login", async (req, res, next) => {
-  console.log("req ", req.body);
   try {
-    const { Email, PasswordHash } = req.body;
+    const { email, Password } = req.body;
 
-    if (!Email || !PasswordHash) {
+    if (!email || !Password) {
       console.log("Faltan email o contraseña");
       return res
         .status(400)
-        .json({ message: "Email y contraseña son requeridos" });
+        .json({ message: "Email y contraseña son requeridos", success: false });
     }
 
-    const user = await User.findOne({ where: { Email } });
-    console.log(user.dataValues.PasswordHash);
-
+    const user = await User.findOne({ where: { Email: email } });
     if (!user) {
       return res.status(404).json({ message: "Usuario no encontrado" });
     }
-    console.log("Usuario encontrado:", user.dataValues);
-    // const isMatch = await verifyPassword(PasswordHash, user.dataValues.PasswordHash);
-    // const isMatch = await bcrypt.compare(PasswordHash, user.dataValues.PasswordHash);
-    // if (!isMatch) {
-    //   return res.status(401).json({ message: 'Contraseña incorrecta' });
-    // }
-    console.log("Contraseña correcta, generando token");
-    //   const token = jwt.sign({ userId:  user.dataValues.Id }, JWT_SECRET, { expiresIn: '1h' });
+
+    const isMatch = await bcrypt.compare(
+      Password,
+      user.dataValues.PasswordHash
+    );
+    if (!isMatch) {
+      return res
+        .status(401)
+        .json({ message: "Contraseña incorrecta", success: false });
+    }
+  
+
+
+   const token = jwt.sign(
+      { userId: user.dataValues.Id },
+     process.env.JWT_SECRET,
+    { expiresIn: "50s" }
+     );
+   
+     const refreshToken = jwt.sign(
+      { userId: user.dataValues.Id },
+     process.env.JWT_SECRET,
+    { expiresIn: "1d" }
+     );
+   
+    let userData = {
+      Id: user.dataValues.Id,
+      Username: user.dataValues.Username,
+      Email: user.dataValues.Email,
+      Rol: user.dataValues.Rol,
+    };
     res.status(200).json({
-      msg: "Usuario correcto",
+      msg: "Inicio de sesión exitoso",
       success: true,
-      //token
+      token,
+      refreshToken,
+      data: userData,
     });
   } catch (error) {
     console.error("Error en la autenticación:", error);
@@ -90,4 +108,27 @@ router.post("/login", async (req, res, next) => {
   }
 });
 
+
+router.get('/test', authenticateToken, (req, res) => {
+  // Ahora tienes acceso a req.user gracias al middleware authenticateToken
+  // Puedes usar esta información para filtrar los datos que envías de vuelta
+
+  // Supongamos que clients es un array con tus datos de clientes
+
+
+  res.json('heello word');
+});
+router.get('/clients', authenticateToken, (req, res) => {
+  // Ahora tienes acceso a req.user gracias al middleware authenticateToken
+  // Puedes usar esta información para filtrar los datos que envías de vuelta
+
+  // Supongamos que clients es un array con tus datos de clientes
+
+  const clients = [
+    { id: 1, name: 'Cliente 1' },
+    { id: 2, name: 'Cliente 2' },
+    { id: 3, name: 'Cliente 3' },
+  ];
+  res.json(clients);
+});
 module.exports = router;
