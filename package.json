@@ -11,6 +11,8 @@
   "author": "WW Seguros",
   "license": "ISC",
   "dependencies": {
+    "@azure/monitor-opentelemetry": "^1.6.0",
+    "applicationinsights": "^3.2.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "crypto-js": "^4.2.0",
