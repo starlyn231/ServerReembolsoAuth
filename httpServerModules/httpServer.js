@@ -5,6 +5,10 @@ const app = express();
 const clientTestRoutes = require("../src/routes/clientAuthTest");
 // Middleware para parsear JSON en las peticiones
 app.use(express.json());
+app.get("/", (req, res) => {
+    res.send("server with certificate with http!");
+  });
+  
 
 app.use("/api/v1", clientTestRoutes);
 

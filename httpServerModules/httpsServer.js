@@ -10,7 +10,10 @@ const app = express();
 app.use(express.json());
 
 app.use("/api/v1", clientTestRoutes);
-
+app.get("/", (req, res) => {
+    res.send("server with certificate with https!");
+  });
+  
 
 function startHttpsServer() {
   const sslOptions = {

@@ -12,8 +12,8 @@ const VerifyTokenRoutes = require("./src/routes/verifyToken.js");
 const { sequelize } = require("./database/connection.js");
 const fs = require("fs");
 const https = require("https");
-const startHttpsServer = require("./httpServerModules/httpsServer.js");
-const startHttpServer = require("./httpServerModules/httpServer.js");
+// const startHttpsServer = require("./httpServerModules/httpsServer.js");
+// const startHttpServer = require("./httpServerModules/httpServer.js");
 const swaggerDefinition = require("./config/swaggerConfig.js");
 app.use(cors());
 app.use(express.json());
@@ -34,7 +34,8 @@ app.use(
   swaggerUi.setup(specs, { explorer: true })
 );
 
-
+app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1", clientTestRoutes);
 app.use("/api", VerifyTokenRoutes);
 
 app.use((req, res, next) => {
@@ -42,7 +43,7 @@ app.use((req, res, next) => {
   next();
 });
 app.get("/", (req, res) => {
-  res.send("api of auth!");
+  res.redirect('/api-docs');
 });
 
 // sequelize.sync().then(() => {
@@ -51,7 +52,24 @@ app.get("/", (req, res) => {
 //   });
 // });
 
+function startHttpsServer() {
+  const sslOptions = {
+    cert: fs.readFileSync(process.env.SSL_CRT_FILE),
+    key: fs.readFileSync(process.env.SSL_KEY_FILE),
+  };
+
+;
+  https.createServer(sslOptions, app).listen(process.env.PORTHTTPS, () => {
+    console.log(`Servidor HTTPS corriendo en el puerto ${process.env.PORTHTTPS}`);
+  });
+}
+
+// Iniciar el servidor
 sequelize.sync().then(() => {
-  startHttpServer();
   startHttpsServer();
+
+  const portHttp = process.env.PORT || 3001;
+  app.listen(portHttp, () => {
+    console.log(`Servidor HTTP corriendo en el puerto ${portHttp}`);
+  });
 });
