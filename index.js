@@ -4,46 +4,36 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const { Sequelize } = require("sequelize");
 config = require("./config");
-const port =8000;
-const sql = require("mssql");
 
-const { User } = require("./test.js");
+const sql = require("mssql");
 const authRoutes = require("./src/routes/auth");
+const clientTestRoutes = require("./src/routes/clientAuthTest.js");
 const VerifyTokenRoutes = require("./src/routes/verifyToken.js");
 const { sequelize } = require("./database/connection.js");
-const errorHandler = require("./src/middlewares/errorHandler.js");
+const fs = require("fs");
+const https = require("https");
+const startHttpsServer = require("./httpServerModules/httpsServer.js");
+const startHttpServer = require("./httpServerModules/httpServer.js");
+const swaggerDefinition = require("./config/swaggerConfig.js");
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+(swaggerJsdoc = require("swagger-jsdoc")),
+  (swaggerUi = require("swagger-ui-express"));
 
-const appInsights = require('applicationinsights');
-appInsights.setup("77dd4ef2-a631-4c76-99c0-1bbed8869c2a")    .setAutoCollectRequests(true)
-    .setAutoDependencyCorrelation(true)
-    .setAutoCollectRequests(true)
-    .setAutoCollectPerformance(true, true)
-    .setAutoCollectExceptions(true)
-    .setAutoCollectDependencies(true)
-    .setAutoCollectConsole(true)
-    .setUseDiskRetryCaching(true)
-    .setSendLiveMetrics(false)
-    .setDistributedTracingMode(appInsights.DistributedTracingModes.AI)
-    .start();
-
-// Import the useAzureMonitor function and the AzureMonitorOpenTelemetryOptions class from the @azure/monitor-opentelemetry package.
-const { useAzureMonitor, AzureMonitorOpenTelemetryOptions } = require("@azure/monitor-opentelemetry");
-
-// Create a new AzureMonitorOpenTelemetryOptions object.
 const options = {
-  azureMonitorExporterOptions: {
-    connectionString: "InstrumentationKey=77dd4ef2-a631-4c76-99c0-1bbed8869c2a;IngestionEndpoint=https://eastus-8.in.applicationinsights.azure.com/;LiveEndpoint=https://eastus.livediagnostics.monitor.azure.com/;ApplicationId=6df8d8e6-9fbf-49e9-95ea-1990a0aa3747"
-  }
+  swaggerDefinition,
+  // Paths to files containing OpenAPI definitions
+  apis: ["src/routes/*.js"],
 };
 
-// Enable Azure Monitor integration using the useAzureMonitor function and the AzureMonitorOpenTelemetryOptions object.
-useAzureMonitor(options);
+const specs = swaggerJsdoc(options);
+app.use(
+  "/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(specs, { explorer: true })
+);
 
-// route for auth
-app.use("/api/auth", authRoutes);
 
 app.use("/api", VerifyTokenRoutes);
 
@@ -51,14 +41,17 @@ app.use((req, res, next) => {
   console.log(`${req.method} request for ${req.url}`);
   next();
 });
-app.get('/', (req, res) => {
-  res.send('¡Hola, mundo lol!');
+app.get("/", (req, res) => {
+  res.send("api of auth!");
 });
 
-app.use(errorHandler);
-console.log(port)
+// sequelize.sync().then(() => {
+//   app.listen(process.env.PORT || 3001 , () => {
+//     console.log(`Server listening on port ${process.env.PORT }`);
+//   });
+// });
+
 sequelize.sync().then(() => {
-  app.listen(port, () => {
-    console.log(`Server listening on port ${port}`);
-  });
+  startHttpServer();
+  startHttpsServer();
 });
