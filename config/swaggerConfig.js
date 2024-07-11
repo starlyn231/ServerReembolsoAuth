@@ -17,8 +17,13 @@ const swaggerDefinition = {
     },
     servers: [
       {
+      
+        url: "https://oauthwws.azurewebsites.net/api/v1",
+        description: "Development server azure",
+      },
+      {
         url: "http://localhost:3001/api/v1",
-        description: "Development server",
+      description: "Local development server",
       },
     ],
     components: {

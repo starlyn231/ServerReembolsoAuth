@@ -17,7 +17,7 @@ router.post('/verifyToken', (req, res) => {
         if (err.name === 'TokenExpiredError') {
           return res.status(403).json({ message: 'Token ha expirado' });
         } else {
-          return res.status(403).json({ message: 'Token no es válidoe' });
+          return res.status(403).json({ message: 'Token no es válido' });
         }
       }
       res.json({ user });

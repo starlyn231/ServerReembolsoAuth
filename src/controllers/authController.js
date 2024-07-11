@@ -46,6 +46,8 @@ const register = async (req, res) => {
 }
 
 const login = async(req, res) => {
+
+
     console.log('login',req.body);
     try {
         const { email, Password } = req.body;
@@ -72,22 +74,36 @@ const login = async(req, res) => {
             .json({ message: "Contraseña incorrecta", success: false });
         }
       
-        const tokenExpiration = 86400; // en segundos
+        const tokenExpiration = 259200; // en segundos
         const refreshTokenExpiration =259200; // en segundos (3 días)
-    
-       const token = jwt.sign(
-          { userId: user.dataValues.Id },
-         process.env.JWT_SECRET,
-        { expiresIn: tokenExpiration}
-         );
-       
-         const refreshToken = jwt.sign(
-          { userId: user.dataValues.Id },
-         process.env.JWT_SECRET,
-        { expiresIn: refreshTokenExpiration}
-         );
+    console.log('process.env.JWT_SECRET',process.env.JWT_SECRET, )
+    //const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+    const payload = {
+     // unique_name: "edocWORLDWIDE_910",
+   
+      nbf: Math.floor(Date.now() / 1000), // Fecha de inicio de validez (nbf)
+      exp: exp = Math.floor(Date.now() / 1000) + (24 * 60 * 60), // Fecha de expiración (exp), 1 hora desde ahora
+      iss: "https://oauthwws.azurewebsites.net/api/v1/auth/login",
+      aud: "https://oauthwws.azurewebsites.net/api/v1/auth/login",
+      userId: user.dataValues.Id,
+
+   };
+
+    const token = jwt.sign(payload,  process.env.JWT_SECRET, { algorithm: 'HS256' });
+      //  const token = jwt.sign(
+      //     { userId: user.dataValues.Id },
+      
+      //    process.env.JWT_SECRET,
+      //   { expiresIn: tokenExpiration}
+      //    );
+
+  
+        const refreshToken = jwt.sign(
+          { userId: user.dataValues.Id }, // Payload
+          process.env.JWT_SECRET, // Secret or private key
+          { expiresIn: refreshTokenExpiration, algorithm: 'HS256' } // Options
+        );
      
-    
         let userData = {
           Id: user.dataValues.Id,
           Username: user.dataValues.Username,
@@ -95,8 +111,7 @@ const login = async(req, res) => {
           Rol: user.dataValues.Rol,
         };
         const currentTime = new Date();
-        console.log(currentTime)
-    
+  
         const tokenExpiryDate = new Date(currentTime.getTime() + tokenExpiration * 1000);
         const refreshTokenExpiryDate = new Date(currentTime.getTime() + refreshTokenExpiration * 1000);
     
@@ -108,6 +123,7 @@ const login = async(req, res) => {
         res.status(200).json({
           msg: "Inicio de sesión exitoso",
           success: true,
+         // tokenDeco:decodedToken ,
           token,
           tokenCreationDate: formattedCurrentTime,
           tokenExpiryDate: formattedTokenExpiryDate,
@@ -118,7 +134,7 @@ const login = async(req, res) => {
         });
       } catch (error) {
         console.error("Error en la autenticación:", error);
-        next(error); // Pasa el error al middleware de manejo de errores
+      
       }
   
 }
