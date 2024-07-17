@@ -19,13 +19,14 @@ const { register, login } = require("../controllers/authController");
  *           schema:
  *             type: object
  *             properties:
- *               email:
+ *               username:
  *                 type: string
- *               Password:
+ *                 description: "Nombre de usuario"
+ *               password:
  *                 type: string
- *               rol:
+ *               roles:
  *                 type: string
- *               notificationsWithEmail:
+ *               notifications:
  *                 type: boolean
  *                 default: true
  *     responses:
@@ -45,7 +46,7 @@ const { register, login } = require("../controllers/authController");
  *       500:
  *         description: Server error
  */
-router.post('/register', register)
+router.post('/register', authenticateToken,register)
 
 // POST api/v1/auth/login | public | login exixting user
 
@@ -54,7 +55,7 @@ router.post('/register', register)
  * @swagger
  * /auth/login:
  *   post:
- *     summary: Login a user
+ *     summary: Iniciar sesión de un usuario
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -63,19 +64,21 @@ router.post('/register', register)
  *           schema:
  *             type: object
  *             properties:
- *               email:
+ *               username:
  *                 type: string
- *               Password:
+ *                 description: "Nombre de usuario del usuario (opcional si se proporciona el correo electrónico)"
+ *               password:
  *                 type: string
+ *                 description: "Contraseña del usuario"
  *     responses:
  *       200:
- *         description: User logged in successfully
+ *         description: Usuario autenticado exitosamente
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 msg:
+ *                 message:
  *                   type: string
  *                 success:
  *                   type: boolean
@@ -96,19 +99,18 @@ router.post('/register', register)
  *                   properties:
  *                     uid:
  *                       type: integer
- *                     email:
- *                       type: string
  *                     role:
  *                       type: string
  *       400:
- *         description: Missing email or password
+ *         description: Faltan el correo electrónico o la contraseña
  *       401:
- *         description: Incorrect password
+ *         description: Contraseña incorrecta
  *       404:
- *         description: User not found
+ *         description: Usuario no encontrado
  *       500:
- *         description: Server error
+ *         description: Error del servidor
  */
+
 router.post('/login', login)
 
 module.exports = router;

@@ -17,7 +17,7 @@ function authenticateToken(req, res, next) {
         if (err) {
             console.log('ERROR:', err)
             if (err.name === 'TokenExpiredError') {
-                return res.status(403).json({ message: 'Token ha expirado' });
+                return res.status(401).json({ message: 'Token ha expirado' });
             } else {
                 return res.status(403).json({ message: 'Token no es valido' });
             }

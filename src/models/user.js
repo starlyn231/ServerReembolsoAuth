@@ -3,30 +3,32 @@ const { DataTypes } = require('sequelize');
 const { sequelize } = require('../../database/connection');
 
 const User = sequelize.define('User', {
-    Id: {
+    id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
       allowNull: false,
     },
-    Username: {
+    username: {
       type: DataTypes.STRING,
       allowNull: true,
+      unique: false,
     },
-    Email: {
+    email: {
+      type: DataTypes.STRING,
+      allowNull: true, // Permite valores NULL
+      unique: false,
+     
+    },
+    password: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true,
     },
-    PasswordHash: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    Rol: {
+    roles: {
       type: DataTypes.INTEGER,
       allowNull: true, 
     },
-    NotificationsWithEmail: {
+    notifications: {
       type: DataTypes.BOOLEAN,
       allowNull: true, 
     },

@@ -8,6 +8,7 @@ config = require("./config");
 const sql = require("mssql");
 const authRoutes = require("./src/routes/auth");
 const clientTestRoutes = require("./src/routes/clientAuthTest.js");
+const userRoutes = require("./src/routes/userRoutes.js");
 const VerifyTokenRoutes = require("./src/routes/verifyToken.js");
 const { sequelize } = require("./database/connection.js");
 const fs = require("fs");
@@ -36,6 +37,7 @@ app.use(
 
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1", clientTestRoutes);
+app.use("/api/v1", userRoutes);
 app.use("/api", VerifyTokenRoutes);
 
 app.use((req, res, next) => {
