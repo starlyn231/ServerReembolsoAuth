@@ -61,11 +61,11 @@ const login = async (req, res) => {
   try {
     const { email, password, username } = req.body;
     if ((!email && !username) || !password) {
-      console.log("Faltan email o contraseña");
+      console.log("Faltan email o contraseÃ±a");
       return res
         .status(400)
         .json({
-          message: "Email/Username y contraseña son requeridos",
+          message: "Email/Username y contraseÃ±a son requeridos",
           success: false,
         });
     }
@@ -88,16 +88,14 @@ const login = async (req, res) => {
     if (!isMatch) {
       return res
         .status(401)
-        .json({ message: "Contraseña incorrecta", success: false });
+        .json({ message: "ContraseÃ±a incorrecta", success: false });
     }
 
-    const tokenExpiration = 60; // en segundos
-    const refreshTokenExpiration = 259200; // en segundos (3 días)
+    const tokenExpiration = 24 * 60 * 60; // 1 día en segundos
+    const refreshTokenExpiration = 5 * 24 * 60 * 60; // 5 días en segundos
     const payload = {
-      // unique_name: "edocWORLDWIDE_910",
-
       nbf: Math.floor(Date.now() / 1000), // Fecha de inicio de validez (nbf)
-      exp: (exp = Math.floor(Date.now() / 1000) + 24 * 60 * 60), // Fecha de expiración (exp), 1 hora desde ahora
+      exp: (exp = Math.floor(Date.now() / 1000) + tokenExpiration), // Fecha de expiraciÃ³n (exp), 1 hora desde ahora
       iss: "https://oauthwws.azurewebsites.net/api/v1/auth/login",
       aud: "https://oauthwws.azurewebsites.net/api/v1/auth/login",
       userId: user.dataValues.Id,
@@ -106,11 +104,19 @@ const login = async (req, res) => {
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
       algorithm: "HS256",
     });
-        const refreshToken = jwt.sign(
-      { userId: user.dataValues.Id }, // Payload
-      process.env.JWT_SECRET, // Secret or private key
-      { expiresIn: refreshTokenExpiration, algorithm: "HS256" } // Options
-    );
+
+    // Payload para el refresh token
+const refreshTokenPayload = {
+  nbf: Math.floor(Date.now() / 1000), // Fecha de inicio de validez (nbf)
+  exp: Math.floor(Date.now() / 1000) + refreshTokenExpiration, // Fecha de expiración (exp)
+  iss: "https://oauthwws.azurewebsites.net/api/v1/auth/refresh",
+  aud: "https://oauthwws.azurewebsites.net/api/v1/auth/refresh",
+  userId: user.dataValues.id,
+};
+      
+const refreshToken = jwt.sign(refreshTokenPayload, process.env.JWT_SECRET, {
+  algorithm: "HS256",
+});
 
     let userData = {
       id: user.dataValues.id,
@@ -152,7 +158,7 @@ const login = async (req, res) => {
     
     });
   } catch (error) {
-    console.error("Error en la autenticación:", error);
+    console.error("Error en la autenticaciÃ³n:", error);
   }
 };
 

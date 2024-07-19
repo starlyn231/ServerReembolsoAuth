@@ -43,12 +43,21 @@ console.log('req',req.body)
         return res.status(403).json({ message: 'RefreshToken no es válido' });
       }
     }
+    const refreshTokenExpiration = 5 * 24 * 60 * 60; // 5 días en segundos
+// Payload para el token de acceso
+const accessTokenPayload = {
+  nbf: Math.floor(Date.now() / 1000), // Fecha de inicio de validez (nbf)
+  exp: Math.floor(Date.now() / 1000) + refreshTokenExpiration, // Fecha de expiración (exp)
+  iss: "https://oauthwws.azurewebsites.net/api/v1/auth/login",
+  aud: "https://oauthwws.azurewebsites.net/api/v1/auth/login",
+ // userId: user.dataValues.id,
+};
+ 
+    const accessToken = jwt.sign(accessTokenPayload, process.env.JWT_SECRET, {
+      algorithm: "HS256",
+    });
+    console.log('access', accessToken)
 
-      const accessToken = jwt.sign(
-          { userId: user.userId },
-          process.env.JWT_SECRET,
-          { expiresIn: '80s' }
-      );
 
       res.json({ accessToken: accessToken });
   });
